@@ -1,91 +1,87 @@
-import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from './page.module.css'
+"use client";
+import styles from "./page.module.css";
+import { useEffect, useRef, useState } from "react";
+import { Trash2 } from "react-feather";
 
-const inter = Inter({ subsets: ['latin'] })
+type ToDo = {
+  id: number;
+  desc: String;
+};
 
 export default function Home() {
+  const inputRef = useRef(null);
+  const [todoList, setToDoList] = useState<ToDo[]>([]);
+
+  const addToDo = () => {
+    const currentToDoList = [...todoList];
+    currentToDoList.push({
+      id: currentToDoList.length + 1,
+      desc: inputRef.current.value,
+    });
+    localStorage.setItem("todoList", JSON.stringify(currentToDoList));
+    setToDoList(currentToDoList);
+    inputRef.current.value = "";
+  };
+
+  const deleteToDo = (id) => {
+    console.log(id);
+    const deletedToDoList = todoList.filter((todo) => todo.id !== id);
+    const currentToDoList = deletedToDoList.map((todo, index) => {
+      return { id: index + 1, desc: todo.desc };
+    });
+    localStorage.setItem("todoList", JSON.stringify(currentToDoList));
+    setToDoList(currentToDoList);
+  };
+
+  useEffect(() => {
+    let todoList = JSON.parse(localStorage.getItem("todoList"));
+    console.log(todoList);
+    if (todoList !== undefined && todoList !== null) {
+      setToDoList(todoList);
+    }
+  }, []);
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
+      <div className={styles.container}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <div className={styles.inputSubmit}>
+            <input
+              className={styles.taskInput}
+              type="text"
+              placeholder="Enter todo"
+              ref={inputRef}
             />
-          </a>
+            <button
+              className={styles.submitButton}
+              onClick={addToDo}
+              type="submit"
+            >
+              Submit
+            </button>
+          </div>
+        </form>
+        <div className={styles.list}>
+          {todoList.map((todo) => {
+            return (
+              <div key={todo.id} className={styles.listItem}>
+                <p>{todo.desc}</p>
+                <button
+                  title="deleteTask"
+                  className={styles.deleteTask}
+                  onClick={() => deleteToDo(todo.id)}
+                >
+                  <Trash2 />
+                </button>
+              </div>
+            );
+          })}
         </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-        <div className={styles.thirteen}>
-          <Image src="/thirteen.svg" alt="13" width={40} height={31} priority />
-        </div>
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
       </div>
     </main>
-  )
+  );
 }
